@@ -1,33 +1,44 @@
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, FancyArrow
+import random
+import time
+from datetime import datetime
 
-fig, ax=plt.subplots(figsize=(8,6))
+warehouse = []
 
-ax.add_patch(Rectangle((0.35, 0.8), 0.3, 0.1, facecolor='lightblue', edgecolor='black'))
-ax.text(0.5, 0.85, 'DATA SOURCES', ha='center', va='center')
+regions = ["North", "South", "East", "West"]
 
-ax.add_patch(Rectangle((0.35, 0.6), 0.3, 0.1, facecolor='lightgreen', edgecolor='black'))
-ax.text(0.5, 0.65, 'ETL LAYER\n(Extract, Transform, Load)', ha='center', va='center')
+print("=== Real-Time Data Warehousing Started ===\n")
 
-ax.add_patch(Rectangle((0.35, 0.4), 0.3, 0.1, facecolor='orange', edgecolor='black'))
-ax.text(0.5, 0.45, 'DATA WAREHOUSE\n(Facts & Dimensions)', ha='center', va='center')
+for i in range(15):
 
-ax.add_patch(Rectangle((0.35, 0.2), 0.3, 0.1, facecolor='pink', edgecolor='black'))
-ax.text(0.5, 0.25, 'REPORTING / BI TOOLS\n(Excel, Power BI, Tableua)', ha='center', va='center')
+    new_data = {
+        "region": random.choice(regions),
+        "amount": random.randint(100, 1000),
+        "time": datetime.now().strftime("%H:%M:%S")
+    }
 
-ax.annotate('', xy=(0.5, 0.8), xytext=(0.5, 0.7), arrowprops=dict(facecolor='black', shrink=0.05))
+    warehouse.append(new_data)
 
-ax.annotate('', xy=(0.5, 0.6), xytext=(0.5, 0.5), arrowprops=dict(facecolor='black', shrink=0.05))
+    print("New Record Added →", new_data)
 
-ax.annotate('', xy=(0.5, 0.4), xytext=(0.5, 0.3), arrowprops=dict(facecolor='black', shrink=0.05))
+    total_sales = {}
 
-ax.set_xlim(0,1)
-ax.set_ylim(0,1)
+    for record in warehouse:
+        region = record["region"]
 
-ax.axis('off')
+        if region in total_sales:
+            total_sales[region] += record["amount"]
+        else:
+            total_sales[region] = record["amount"]
 
-plt.show()
+    print("Updated Total Sales Per Region:")
+    for r, amt in total_sales.items():
+        print(f"  {r} : {amt}")
 
+    print("-" * 45)
+
+    time.sleep(1)
+
+print("\n=== Data Warehousing Process Completed ===")
 
 
 
@@ -113,5 +124,71 @@ WHERE updated_at > '2023-01-10';
 
 SELECT COUNT(*) FROM dim_customer;
 
-DROP DATABASE megamart_db;
+DROP DATABASE megamart_db; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE DATABASE SalesDBB;
+USE SalesDBB;
+CREATE TABLE Sales (
+    SaleID INT PRIMARY KEY,
+    CustomerID INT,
+    ProductID INT,
+    SaleDate DATE,
+    Quantity INT,
+    SaleAmount DECIMAL(10,2)
+);
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Region VARCHAR(50)
+);
+INSERT INTO Customers (CustomerID, Name, Region) VALUES
+(1, 'Ravi Kumar', 'North'),
+(2, 'Anita Sharma', 'South'),
+(3, 'Rahul Mehta', 'West'),
+(4, 'Priya Singh', 'East');
+
+INSERT INTO Sales (SaleID, CustomerID, ProductID, SaleDate, Quantity, SaleAmount) VALUES
+(101, 1, 201, '2023-01-15', 2, 5000.00),
+(102, 2, 202, '2023-03-20', 1, 3000.00),
+(103, 3, 203, '2023-06-10', 5, 12000.00),
+(104, 1, 204, '2022-12-05', 3, 4500.00),
+(105, 4, 205, '2023-09-18', 2, 7000.00),
+(106, 2, 206, '2023-11-25', 4, 9000.00);
+
+SELECT * FROM Customers;
+
+SELECT * FROM Sales;
+
+SELECT c.Region, SUM(s.SaleAmount) AS TotalSales
+FROM Sales s
+JOIN Customers c ON s.CustomerID = c.CustomerID
+WHERE YEAR(s.SaleDate) = 2023
+GROUP BY c.Region;
+
+CREATE INDEX idx_sales_date ON Sales(SaleDate);
+
+CREATE INDEX idx_sales_customer ON Sales(CustomerID);
+
+CREATE INDEX idx_customers_region ON Customers(Region);
+
+SELECT c.Region, SUM(s.SaleAmount) AS TotalSales
+FROM Sales s
+JOIN Customers c ON s.CustomerID = c.CustomerID
+WHERE s.SaleDate BETWEEN '2023-01-01' AND '2023-12-31'
+GROUP BY c.Region;
+
         
